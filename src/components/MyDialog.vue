@@ -2,9 +2,13 @@
   <div class="modal-window-wrapper" v-show="show">
     <div class="modal-window">
       <button class="close-modal-window" @click="closeDialog">&times;</button>
-      <h1 class="delete-task-text">
-        Are you sure you want to delete task "{{ taskBody }}"?
-      </h1>
+      <h2 class="delete-task-text">
+        Are you sure you want to delete task "<span
+          class="delete-task-text-body"
+          >{{ taskBody }}</span
+        >
+        "?
+      </h2>
       <button class="btn delete-task-yes" @click="$emit('removeTask')">
         Yes
       </button>
@@ -48,6 +52,17 @@ export default {
     cursor: pointer;
     border: none;
     background: none;
+  }
+  .delete-task-text {
+    .delete-task-text-body {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    @media screen and (max-width: 1170px) {
+      font-size: 1em;
+    }
   }
   .btn {
     font-size: 1.4rem;

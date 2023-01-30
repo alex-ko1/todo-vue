@@ -5,11 +5,9 @@
   >
     <div>
       <h2 class="no-tasks">You don't have tasks to do.</h2>
-      <!-- <div class="hash">{{ tasksHash }}</div> -->
     </div>
   </div>
   <div v-else class="all-tasks">
-    <!-- <div class="hash">{{ tasksHash }}</div> -->
     <h1 class="title">To do</h1>
     <div v-if="unComplTasks.length > 0" class="uncompleted-tasks">
       <div
@@ -86,7 +84,6 @@ export default {
   data() {
     return {
       limit: 5,
-      arrAllTasks: [],
     };
   },
   components: { TaskItem },
@@ -107,7 +104,7 @@ export default {
     allTasksLength() {
       return this.unComplTasks.length + this.completeTasks.length;
     },
-
+    // Change color depending on the percentage.
     percentageColor() {
       const percentage = Math.round(
         (this.completeTasks.length / this.allTasksLength) * 100
@@ -120,17 +117,10 @@ export default {
         return "yellow";
       } else if (percentage > 0) return "red";
     },
-    // tasksHash() {
-    //   this.arrAllTasks = this.unComplTasks.concat(this.completeTasks);
-    //   let json = JSON.stringify(this.arrAllTasks);
-    //   const encodedData = window.btoa(json) == "W10=" ? "" : window.btoa(json);
-    //   window.location.hash = encodedData;
-    //   return encodedData;
-    // },
   },
   methods: {
+    // Change the task status from "need" to "complete" or or vice versa.
     isChecked(index, event) {
-      // let arrAllTasks = [];
       if (event.target.checked) {
         const completeMask = this.unComplTasks.splice(index, 1);
         this.completeTasks.unshift(...completeMask);
@@ -140,16 +130,8 @@ export default {
         this.unComplTasks.push(...noCompleteMask);
         noCompleteMask[0].status = "need";
       }
-      // How to work window.location.hash, atob, btoa, json
-      //
-      // this.arrAllTasks = this.unComplTasks.concat(this.completeTasks);
-      // let json = JSON.stringify(this.arrAllTasks);
-      // console.log(this.tasksHash);
-      // console.log(window.location.hash.substring(1));
-      // console.log(window.atob(window.location.hash.substring(1)));
-      // console.log(window.atob(this.tasksHash));
-      // console.log(JSON.parse(window.atob(this.tasksHash)));
     },
+    // Removing a task from the to-do list.
     removeTask(index, type) {
       const toDoList = type === "need" ? this.unComplTasks : this.completeTasks;
       toDoList.splice(index, 1);
@@ -209,7 +191,4 @@ export default {
 .green {
   color: green;
 }
-// .hash {
-//   display: none;
-// }
 </style>

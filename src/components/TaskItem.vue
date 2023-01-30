@@ -8,11 +8,11 @@
       @change="isChecked"
       :checked="checked"
     />
-    <p class="task--text" @dblclick="dbclickFunc" v-show="!isShowInput">
+    <p class="task--text" @dblclick="dbclickFunc" v-if="!isShowInput">
       {{ task.body }}
     </p>
     <input
-      v-show="isShowInput"
+      v-else
       v-model="task.body"
       ref="taskBody"
       class="task--text-input"
@@ -57,12 +57,13 @@ export default {
     isChecked(event) {
       this.$emit("isChecked", event);
     },
-    // removeTask() {
-    //   this.$emit("removeTask");
-    // },
+
+    // Func for show modal window.
     showDialog() {
       this.isShow = !this.isShow;
     },
+
+    // Double-click the task body to change it.
     dbclickFunc() {
       if (this.task.status === "need") {
         this.isShowInput = true;
@@ -73,7 +74,9 @@ export default {
         });
       }
     },
-    changeTaskBody(event) {
+
+    // Press enter if you wanna to save changes in task body
+    changeTaskBody() {
       if (this.task.body.trim()) {
         this.isShowInput = false;
       }
@@ -92,8 +95,9 @@ export default {
   word-break: break-all;
   .task--text-input {
     outline: none;
-    border: 1px solid #000;
-    // background: none;
+    border: 1px solid var(--vt-c-divider-dark-2);
+    border-radius: 5px;
+    background: none;
     width: 100%;
     color: var(--color-text);
     font-size: 1em;
