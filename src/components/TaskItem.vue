@@ -4,14 +4,24 @@
       type="checkbox"
       id="checkbox"
       class="checkbox"
+      :class="{ hidden: isShowInput }"
       @change="isChecked"
       :checked="checked"
     />
-    <p class="task--text" @dblclick="changeTaskBody">
+    <p class="task--text" @dblclick="dbclickFunc" v-show="!isShowInput">
       {{ task.body }}
     </p>
-    <input class="task--text" @dblclick="changeTaskBody" :value="task.body" />
-    <button class="dump" @click="showDialog">🗑</button>
+    <input
+      v-show="isShowInput"
+      v-model="task.body"
+      ref="taskBody"
+      class="task--text-input"
+      @keypress.enter="changeTaskBody"
+      placeholder="Change task..."
+    />
+    <button class="dump" :class="{ hidden: isShowInput }" @click="showDialog">
+      🗑
+    </button>
     <my-dialog
       :show="isShow"
       :taskBody="task.body"
@@ -22,7 +32,7 @@
 </template>
 
 <script>
-import { toRaw } from "@vue/reactivity";
+import { ref, toRaw } from "@vue/reactivity";
 import MyDialog from "./MyDialog.vue";
 
 export default {
@@ -53,7 +63,21 @@ export default {
     showDialog() {
       this.isShow = !this.isShow;
     },
-    changeTaskBody() {},
+    dbclickFunc() {
+      if (this.task.status === "need") {
+        this.isShowInput = true;
+        this.$nextTick(() => {
+          // This callback will only be called after the
+          // DOM has been updated
+          this.$refs.taskBody.focus();
+        });
+      }
+    },
+    changeTaskBody(event) {
+      if (this.task.body.trim()) {
+        this.isShowInput = false;
+      }
+    },
   },
 };
 </script>
@@ -67,8 +91,10 @@ export default {
   font-size: 1.2em;
   word-break: break-all;
   .task--text-input {
-    border: none;
-    background: none;
+    outline: none;
+    border: 1px solid #000;
+    // background: none;
+    width: 100%;
     color: var(--color-text);
     font-size: 1em;
   }
@@ -127,5 +153,8 @@ input.checkbox {
 }
 .completed-tasks .task--text {
   opacity: 0.5;
+}
+.hidden {
+  visibility: hidden;
 }
 </style>
