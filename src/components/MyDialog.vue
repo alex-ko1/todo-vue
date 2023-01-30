@@ -4,7 +4,7 @@
       <button class="close-modal-window" @click="closeDialog">&times;</button>
       <h2 class="delete-task-text">
         Are you sure you want to delete task "<span
-          class="delete-task-text-body"
+          :class="{ hiddenText: taskBody.length > 100 }"
           >{{ taskBody }}</span
         >
         "?
@@ -54,7 +54,7 @@ export default {
     background: none;
   }
   .delete-task-text {
-    .delete-task-text-body {
+    .hiddenText {
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
