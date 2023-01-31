@@ -33,3 +33,19 @@ a,
     padding: 0 2rem;
   } */
 }
+
+@media (max-width: 992px) {
+  body {
+    font-size: 12px;
+  }
+}
+@media (max-width: 768px) {
+  body {
+    font-size: 9px;
+  }
+}
+@media (max-width: 576px) {
+  body {
+    font-size: 8px;
+  }
+}
