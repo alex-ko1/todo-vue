@@ -10,17 +10,35 @@
   <div v-else class="all-tasks">
     <h1 class="title">To do</h1>
     <div v-if="unComplTasks.length > 0" class="uncompleted-tasks">
-      <div
-        class="task-wrapper"
+      <draggable
+        :list="unComplTasks"
+        class="list-group"
+        item-key="body"
+        ghost-class="ghost"
+        @start="dragging = true"
+        @end="dragging = false"
+        animation="200"
+        ref="unCompletedTasks"
+      >
+        <template #item="{ element, index }">
+          <div class="task-wrapper">
+            <task-item
+              :task="element"
+              @isChecked="isChecked(index, $event)"
+              @removeTask="removeTask(index, 'need')"
+              ref="taskItem"
+            />
+          </div>
+        </template>
+      </draggable>
+
+      <!-- <task-item
         v-for="(Ttask, index) in unComplTasks"
         :key="Ttask.id"
-      >
-        <task-item
-          :task="Ttask"
-          @isChecked="isChecked(index, $event)"
-          @removeTask="removeTask(index, 'need')"
-        />
-      </div>
+        :task="Ttask"
+        @isChecked="isChecked(index, $event)"
+        @removeTask="removeTask(index, 'need')"
+      /> -->
     </div>
 
     <div v-else style="text-align: center">
@@ -45,12 +63,13 @@
       </span>
     </div>
 
-    <div class="completed-tasks">
-      <h1 class="title">Done</h1>
+    <h1 class="title">Done</h1>
+    <div class="completed-tasks" ref="completedTasks">
       <div
         class="task-wrapper"
         v-for="(Ttask, index) in completeTasks"
         :key="Ttask.id"
+        ref="completedTaskItem"
       >
         <task-item
           :task="Ttask"
@@ -80,19 +99,35 @@
 
 <script>
 import TaskItem from "./TaskItem.vue";
+import draggable from "vuedraggable";
+
 export default {
   data() {
     return {
       limit: 5,
+      // unComplTasksCopy: [
+      //   { body: "asd,s", id: 0.8847097034248039, status: "need" },
+      //   { body: "1", id: 0.27225410362731495, status: "need" },
+      //   { body: "12", id: 0.9186474533100957, status: "need" },
+      //   { body: "4", id: 0.1362841530823935, status: "complete" },
+      //   { body: "1234", id: 0.42671503295786595, status: "complete" },
+      // ],
+      dragging: false,
+      isCheckTask: false,
+      isUnCheckTask: false,
     };
   },
-  components: { TaskItem },
+  components: { TaskItem, draggable },
   props: {
     unComplTasks: {
       type: Array,
       required: true,
     },
     completeTasks: {
+      type: Array,
+      required: true,
+    },
+    allTasks: {
       type: Array,
       required: true,
     },
@@ -122,14 +157,68 @@ export default {
     // Change the task status from "need" to "complete" or or vice versa.
     isChecked(index, event) {
       if (event.target.checked) {
-        const completeMask = this.unComplTasks.splice(index, 1);
-        this.completeTasks.unshift(...completeMask);
-        completeMask[0].status = "complete";
+        event.target.parentElement.classList.add("toDown");
       } else {
-        const noCompleteMask = this.completeTasks.splice(index, 1);
-        this.unComplTasks.push(...noCompleteMask);
-        noCompleteMask[0].status = "need";
+        event.target.parentElement.classList.add("toUp");
       }
+      event.target.parentElement.parentElement.style.height =
+        event.target.parentElement.parentElement.clientHeight + "px";
+      setTimeout(() => {
+        event.target.parentElement.parentElement.style.height = 0;
+        event.target.parentElement.style.marginTop = 0;
+      }, 1);
+      // let taskHeight = this.$refs.completedTaskItem[index];
+      // taskHeight.style.height =
+      //   this.$refs.completedTaskItem[index].clientHeight + "px";
+      setTimeout(() => {
+        if (event.target.checked) {
+          const completeMask = this.unComplTasks.splice(index, 1);
+          this.completeTasks.unshift(...completeMask);
+          completeMask[0].status = "complete";
+          this.$nextTick(() => {
+            this.$refs.completedTasks.firstChild.nextSibling.classList.add(
+              "upToDown"
+            );
+            let taskHeight =
+              this.$refs.completedTasks.firstChild.nextSibling.clientHeight;
+            this.$refs.completedTasks.firstChild.nextSibling.style.height = 0;
+            // this.$refs.completedTasks.firstChild.nextSibling.firstChild.style.marginTop = 0;
+            setTimeout(() => {
+              this.$refs.completedTasks.firstChild.nextSibling.style.height =
+                taskHeight + "px";
+            }, 10);
+
+            setTimeout(() => {
+              this.$refs.completedTasks.firstChild.nextSibling.classList.remove(
+                "upToDown"
+              );
+            }, 500);
+          });
+        } else {
+          const noCompleteMask = this.completeTasks.splice(index, 1);
+          this.unComplTasks.push(...noCompleteMask);
+          noCompleteMask[0].status = "need";
+
+          this.$nextTick(() => {
+            let taskHeight =
+              this.$refs.unCompletedTasks.targetDomElement.lastChild
+                .clientHeight;
+            this.$refs.unCompletedTasks.targetDomElement.lastChild.style.height = 0;
+            setTimeout(() => {
+              this.$refs.unCompletedTasks.targetDomElement.lastChild.style.height =
+                taskHeight + "px";
+            }, 10);
+            this.$refs.unCompletedTasks.targetDomElement.lastChild.classList.add(
+              "downToUp"
+            );
+            setTimeout(() => {
+              this.$refs.unCompletedTasks.targetDomElement.lastChild.classList.remove(
+                "downToUp"
+              );
+            }, 500);
+          });
+        }
+      }, 400);
     },
     // Removing a task from the to-do list.
     removeTask(index, type) {
@@ -139,7 +228,21 @@ export default {
     showMore() {
       this.limit += 5;
     },
+    startDrag(event, item) {
+      console.log(item);
+      event.dataTransfer.dropEffect = "move";
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("itemID", item.id);
+    },
   },
+  // watch: {
+  //   unComplTasks: {
+  //     deep: true,
+  //     handler() {
+  //       this.unComplTasksCopy = this.unComplTasks;
+  //     },
+  //   },
+  // },
 };
 </script>
 
@@ -147,6 +250,12 @@ export default {
 .all-tasks {
   width: 80%;
   margin: 0 auto;
+}
+.list-group {
+  transition: 0.3s;
+}
+.task-wrapper {
+  transition: 0.4s;
 }
 .title {
   text-align: left;
@@ -190,5 +299,81 @@ export default {
 }
 .green {
   color: green;
+}
+.ghost {
+  background-color: rgb(30, 144, 255, 0.1);
+  padding: 0 10px;
+  border-radius: 10px;
+  z-index: 2;
+}
+.upToDown {
+  animation: toUp 0.5s reverse;
+}
+.downToUp {
+  animation: toDown 0.5s reverse;
+}
+.toUp {
+  animation: toUp 0.5s;
+}
+.toDown {
+  animation: toDown 0.5s;
+}
+.toUpWrapper {
+  animation: toUpWrapper 0.6s;
+}
+// @keyframes toUpWrapper {
+//   0% {
+//     max-height: 100px;
+//   }
+//   50% {
+//   }
+//   100% {
+//     max-height: 0;
+//   }
+// }
+@keyframes toUp {
+  25% {
+    transform: translateY(0px);
+    opacity: 1;
+  }
+  50% {
+  }
+  100% {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+}
+@keyframes toDown {
+  25% {
+    transform: translateY(0px);
+    opacity: 1;
+  }
+  50% {
+  }
+  100% {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+}
+@media (max-width: 876px) {
+  .hr {
+    width: 75%;
+  }
+}
+@media (max-width: 768px) {
+  .all-tasks {
+    width: 90%;
+  }
+  .percent-completed {
+    font-size: 0.8rem;
+  }
+}
+@media (max-width: 576px) {
+  .all-tasks {
+    width: 100%;
+  }
+  .hr {
+    width: 65%;
+  }
 }
 </style>

@@ -13,19 +13,25 @@
     </p>
     <input
       v-else
-      v-model="task.body"
+      :value="task.body"
+      @input="updateInput"
       ref="taskBody"
       class="task--text-input"
       @keypress.enter="changeTaskBody"
       placeholder="Change task..."
     />
-    <button class="dump" :class="{ hidden: isShowInput }" @click="showDialog">
+    <button
+      class="dump"
+      ref="dump"
+      :class="{ hidden: isShowInput }"
+      @click="showDialog"
+    >
       🗑
     </button>
     <my-dialog
       :show="isShow"
       :taskBody="task.body"
-      @closeDialog="isShow = !isShow"
+      @closeDialog="closeDialog"
       @removeTask="$emit('removeTask')"
     />
   </div>
@@ -54,13 +60,21 @@ export default {
     },
   },
   methods: {
+    updateInput(event) {
+      event.target.focus();
+    },
     isChecked(event) {
       this.$emit("isChecked", event);
     },
 
     // Func for show modal window.
-    showDialog() {
+    showDialog(event) {
       this.isShow = !this.isShow;
+      console.log(event.target);
+      this.$refs.dump.blur();
+    },
+    closeDialog() {
+      this.isShow = false;
     },
 
     // Double-click the task body to change it.
@@ -79,6 +93,7 @@ export default {
     changeTaskBody() {
       if (this.task.body.trim()) {
         this.isShowInput = false;
+        this.task.body = this.$refs.taskBody.value;
       }
     },
   },
@@ -93,6 +108,8 @@ export default {
   margin: 1em auto 0;
   font-size: 1.2em;
   word-break: break-all;
+  transition: 0.4s;
+  cursor: pointer;
   .task--text-input {
     outline: none;
     border: 1px solid var(--vt-c-divider-dark-2);

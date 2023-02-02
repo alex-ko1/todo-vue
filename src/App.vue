@@ -3,12 +3,21 @@
     <my-input
       v-bind:value="valueInput"
       @input="updateInput"
-      @keypress.enter="addTask"
+      @keypress.enter="$refs.addTask.click()"
+      :class="{ shake: isAddTask }"
     />
-    <input type="button" value="Add" class="btn btn-add" @click="addTask" />
+    <input
+      type="button"
+      ref="addTask"
+      value="Add"
+      class="btn btn-add"
+      @click="addTask"
+    />
     <task-list
       :unComplTasks="unCompleteTasksList"
       :completeTasks="completeTasksList"
+      :allTasks="allTasksList"
+      ref="taskList"
     />
   </div>
 </template>
@@ -27,6 +36,7 @@ export default {
       completeTasksList: [],
       allTasksList: [],
       valueInput: "",
+      isAddTask: false,
     };
   },
   methods: {
@@ -37,12 +47,16 @@ export default {
     // Function to add a task to the to-do list.
     addTask() {
       if (this.valueInput.trim()) {
+        this.isAddTask = false;
         this.unCompleteTasksList.push({
           body: this.valueInput,
           id: Math.random(),
           status: "need",
         });
         this.valueInput = "";
+      } else {
+        this.isAddTask = true;
+        //setTimeout(() => (this.isAddTask = false), 1000);
       }
     },
     // Encode the array of all tasks into hash.
@@ -128,5 +142,42 @@ header {
   color: #888;
   border: 1px solid #888;
   cursor: pointer;
+}
+@media (max-width: 768px) {
+  .btn-add {
+    font-size: 1.2em;
+  }
+}
+@media (max-width: 576px) {
+  .btn-add {
+    margin: 0 5px;
+    padding: 5px 10px;
+  }
+}
+.shake {
+  animation: shaking 0.3s;
+}
+@keyframes shaking {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(6px);
+  }
+  40% {
+    transform: translateX(-6px);
+  }
+  60% {
+    transform: translateX(6px);
+  }
+  80% {
+    transform: translateX(-6px);
+  }
+  90% {
+    transform: translateX(6px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 </style>
