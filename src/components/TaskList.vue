@@ -9,8 +9,13 @@
   </div>
   <div v-else class="all-tasks">
     <h1 class="title">To do</h1>
-    <div v-if="unComplTasks.length > 0" class="uncompleted-tasks">
-      <draggable
+    <div
+      v-if="unComplTasks.length > 0"
+      class="uncompleted-tasks"
+      ref="unCompletedTasks"
+    >
+      <!-- Vue draggable -->
+      <!-- <draggable
         :list="unComplTasks"
         class="list-group"
         item-key="body"
@@ -27,18 +32,31 @@
               @isChecked="isChecked(index, $event)"
               @removeTask="removeTask(index, 'need')"
               ref="taskItem"
+              :key="element.id"
             />
           </div>
         </template>
-      </draggable>
+      </draggable> -->
 
-      <!-- <task-item
+      <!-- Simple drag and drop -->
+      <div
+        class="task-wrapper"
         v-for="(Ttask, index) in unComplTasks"
         :key="Ttask.id"
-        :task="Ttask"
-        @isChecked="isChecked(index, $event)"
-        @removeTask="removeTask(index, 'need')"
-      /> -->
+        @dragstart="onDragStart($event, Ttask, index)"
+        @dragenter="onDragEnter(index)"
+        @dragover="onDragOver($event)"
+        @dragend="onDragEnd()"
+        @dragleave="onDragLeave($event)"
+        @drop="onDrop($event)"
+        draggable="true"
+      >
+        <task-item
+          :task="Ttask"
+          @isChecked="isChecked(index, $event)"
+          @removeTask="removeTask(index, 'need')"
+        />
+      </div>
     </div>
 
     <div v-else style="text-align: center">
@@ -105,16 +123,12 @@ export default {
   data() {
     return {
       limit: 5,
-      // unComplTasksCopy: [
-      //   { body: "asd,s", id: 0.8847097034248039, status: "need" },
-      //   { body: "1", id: 0.27225410362731495, status: "need" },
-      //   { body: "12", id: 0.9186474533100957, status: "need" },
-      //   { body: "4", id: 0.1362841530823935, status: "complete" },
-      //   { body: "1234", id: 0.42671503295786595, status: "complete" },
-      // ],
+
       dragging: false,
       isCheckTask: false,
       isUnCheckTask: false,
+      dragIndex: 0,
+      dragOverIndex: 0,
     };
   },
   components: { TaskItem, draggable },
@@ -161,20 +175,18 @@ export default {
       } else {
         event.target.parentElement.classList.add("toUp");
       }
-      event.target.parentElement.parentElement.style.height =
-        event.target.parentElement.parentElement.clientHeight + "px";
+      event.target.parentElement.style.height =
+        event.target.parentElement.clientHeight + "px";
       setTimeout(() => {
-        event.target.parentElement.parentElement.style.height = 0;
+        event.target.parentElement.style.height = 0;
         event.target.parentElement.style.marginTop = 0;
       }, 1);
-      // let taskHeight = this.$refs.completedTaskItem[index];
-      // taskHeight.style.height =
-      //   this.$refs.completedTaskItem[index].clientHeight + "px";
       setTimeout(() => {
         if (event.target.checked) {
           const completeMask = this.unComplTasks.splice(index, 1);
-          this.completeTasks.unshift(...completeMask);
           completeMask[0].status = "complete";
+          this.completeTasks.unshift(...completeMask);
+
           this.$nextTick(() => {
             this.$refs.completedTasks.firstChild.nextSibling.classList.add(
               "upToDown"
@@ -199,50 +211,74 @@ export default {
           this.unComplTasks.push(...noCompleteMask);
           noCompleteMask[0].status = "need";
 
-          this.$nextTick(() => {
-            let taskHeight =
-              this.$refs.unCompletedTasks.targetDomElement.lastChild
-                .clientHeight;
-            this.$refs.unCompletedTasks.targetDomElement.lastChild.style.height = 0;
-            setTimeout(() => {
-              this.$refs.unCompletedTasks.targetDomElement.lastChild.style.height =
-                taskHeight + "px";
-            }, 10);
-            this.$refs.unCompletedTasks.targetDomElement.lastChild.classList.add(
-              "downToUp"
-            );
-            setTimeout(() => {
-              this.$refs.unCompletedTasks.targetDomElement.lastChild.classList.remove(
-                "downToUp"
-              );
-            }, 500);
-          });
+          // If you use vue draggable library.
+          // this.$nextTick(() => {
+          //   let taskHeight =
+          //     this.$refs.unCompletedTasks.targetDomElement.lastChild
+          //       .clientHeight;
+          //   this.$refs.unCompletedTasks.targetDomElement.lastChild.style.height = 0;
+          //   setTimeout(() => {
+          //     this.$refs.unCompletedTasks.targetDomElement.lastChild.style.height =
+          //       taskHeight + "px";
+          //   }, 10);
+          //   this.$refs.unCompletedTasks.targetDomElement.lastChild.classList.add(
+          //     "downToUp"
+          //   );
+          //   setTimeout(() => {
+          //     this.$refs.unCompletedTasks.targetDomElement.lastChild.classList.remove(
+          //       "downToUp"
+          //     );
+          //   }, 500);
+          // });
         }
       }, 400);
     },
+
     // Removing a task from the to-do list.
     removeTask(index, type) {
       const toDoList = type === "need" ? this.unComplTasks : this.completeTasks;
-      toDoList.splice(index, 1);
+      setTimeout(() => {
+        toDoList.splice(index, 1);
+      }, 300);
     },
     showMore() {
       this.limit += 5;
     },
-    startDrag(event, item) {
-      console.log(item);
-      event.dataTransfer.dropEffect = "move";
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("itemID", item.id);
+
+    // Drag and drop without libraries.
+    onDragStart(e, item, index) {
+      this.dragIndex = index;
+      e.dataTransfer.dropEffect = "move";
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("itemID", item.id);
+    },
+    onDragEnter(index) {
+      this.dragOverIndex = index;
+    },
+    onDragEnd() {
+      let taskItems = [...this.unComplTasks];
+      const draggedItemContent = taskItems.splice(this.dragIndex, 1)[0];
+      taskItems.splice(this.dragOverIndex, 0, draggedItemContent);
+      this.dragIndex = null;
+      this.dragOverIndex = null;
+      this.$emit("onDragEnd", taskItems);
+    },
+
+    onDragOver(e) {
+      e.preventDefault();
+      if (e.target.classList.contains("task")) {
+        e.target.style.boxShadow = "0px 5px 4px -4px rgba(128,128,128,1)";
+      }
+    },
+    onDragLeave(e) {
+      e.preventDefault();
+      e.target.style.boxShadow = "none";
+    },
+    onDrop(e) {
+      // const ItemId = e.dataTransfer.getData("itemID");
+      e.target.style.boxShadow = "none";
     },
   },
-  // watch: {
-  //   unComplTasks: {
-  //     deep: true,
-  //     handler() {
-  //       this.unComplTasksCopy = this.unComplTasks;
-  //     },
-  //   },
-  // },
 };
 </script>
 
@@ -321,16 +357,6 @@ export default {
 .toUpWrapper {
   animation: toUpWrapper 0.6s;
 }
-// @keyframes toUpWrapper {
-//   0% {
-//     max-height: 100px;
-//   }
-//   50% {
-//   }
-//   100% {
-//     max-height: 0;
-//   }
-// }
 @keyframes toUp {
   25% {
     transform: translateY(0px);

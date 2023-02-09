@@ -32,7 +32,10 @@
       :show="isShow"
       :taskBody="task.body"
       @closeDialog="closeDialog"
-      @removeTask="$emit('removeTask')"
+      @removeTask="
+        $emit('removeTask');
+        isShow = false;
+      "
     />
   </div>
 </template>
@@ -110,6 +113,10 @@ export default {
   word-break: break-all;
   transition: 0.4s;
   cursor: pointer;
+  .task--text {
+    text-align: left;
+    word-break: break-word;
+  }
   .task--text-input {
     outline: none;
     border: 1px solid var(--vt-c-divider-dark-2);

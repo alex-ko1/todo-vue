@@ -18,6 +18,7 @@
       :completeTasks="completeTasksList"
       :allTasks="allTasksList"
       ref="taskList"
+      @onDragEnd="onDragEnd"
     />
   </div>
 </template>
@@ -49,10 +50,11 @@ export default {
       if (this.valueInput.trim()) {
         this.isAddTask = false;
         this.unCompleteTasksList.push({
-          body: this.valueInput,
           id: Math.random(),
+          body: this.valueInput,
           status: "need",
         });
+        console.log(this.unCompleteTasksList);
         this.valueInput = "";
       } else {
         this.isAddTask = true;
@@ -67,6 +69,9 @@ export default {
       let json = JSON.stringify(this.allTasksList);
       const encodedData = Base64.encode(json);
       window.location.hash = encodedData;
+    },
+    onDragEnd(taskItems) {
+      this.unCompleteTasksList = taskItems;
     },
   },
   watch: {

@@ -94,6 +94,7 @@ export default {
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(3px);
   z-index: 5;
+  cursor: auto;
 }
 .modal-window {
   position: fixed;
