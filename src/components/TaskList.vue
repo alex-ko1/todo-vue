@@ -180,7 +180,7 @@ export default {
       setTimeout(() => {
         event.target.parentElement.style.height = 0;
         event.target.parentElement.style.marginTop = 0;
-      }, 1);
+      }, 10);
       setTimeout(() => {
         if (event.target.checked) {
           const completeMask = this.unComplTasks.splice(index, 1);
@@ -198,7 +198,7 @@ export default {
             setTimeout(() => {
               this.$refs.completedTasks.firstChild.nextSibling.style.height =
                 taskHeight + "px";
-            }, 10);
+            }, 50);
 
             setTimeout(() => {
               this.$refs.completedTasks.firstChild.nextSibling.classList.remove(
@@ -241,6 +241,7 @@ export default {
         toDoList.splice(index, 1);
       }, 300);
     },
+
     showMore() {
       this.limit += 5;
     },
